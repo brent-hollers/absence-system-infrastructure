@@ -1,0 +1,75 @@
+# Terraform files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!terraform.tfvars.example
+.terraform.lock.hcl
+
+# EXCEPTION: Include bootstrap state for team reference
+!infrastructure/bootstrap/terraform.tfstate
+
+# Ansible
+*.retry
+ansible.log
+
+# Environment files
+.env
+.env.local
+
+# AWS credentials
+**/credentials
+**/config
+.aws/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Build artifacts
+dist/
+build/
+*.zip
+*.tar.gz
+
+# Logs
+*.log
+logs/
+
+# Secrets 
+secrets.json
+*secret*
+*password*
+*key.pem
+*.pem
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+
+
+node_modules/
+package-lock.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
