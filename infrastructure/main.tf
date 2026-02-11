@@ -37,6 +37,9 @@ module "compute" {
   project_name      = var.project_name
   subnet_id         = module.networking.private_subnet_id
   security_group_id = module.networking.ec2_security_group_id
+  webhook_base_url  = "http://${module.load_balancer.alb_dns_name}"
+
+   depends_on = [module.load_balancer]
 }
 
 # Load Balancer Module
