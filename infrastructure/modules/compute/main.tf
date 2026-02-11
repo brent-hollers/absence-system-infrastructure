@@ -69,24 +69,24 @@ resource "aws_instance" "n8n" {
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
 
   user_data = <<-EOF
-              #!/bin/bash
-              # Update system
-              yum update -y
-              
-              # Install Docker
-              amazon-linux-extras install docker -y
-              systemctl start docker
-              systemctl enable docker
-              usermod -a -G docker ec2-user
-              
-              # Run n8n container
-              docker run -d \
-                --name n8n \
-                -p 5678:5678 \
-                -v ~/.n8n:/home/node/.n8n \
-                --restart unless-stopped \
-                n8nio/n8n
-              EOF
+            #!/bin/bash
+            # Update system
+            yum update -y
+            
+            # Install Docker
+            amazon-linux-extras install docker -y
+            systemctl start docker
+            systemctl enable docker
+            usermod -a -G docker ec2-user
+            
+            # Run n8n container (without volume, with secure cookie disabled)
+            docker run -d \
+              --name n8n \
+              -p 5678:5678 \
+              -e N8N_SECURE_COOKIE=false \
+              --restart unless-stopped \
+              n8nio/n8n
+            EOF
 
   tags = {
     Name = "${var.project_name}-n8n-server"

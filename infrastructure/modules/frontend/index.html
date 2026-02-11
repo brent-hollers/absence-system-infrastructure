@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Absence Request System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white p-6 rounded-t-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Staff Absence Request</h1>
+            <p class="text-gray-600 text-center mt-2">Please complete this form to submit your absence request</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white p-8 rounded-b-lg shadow-lg">
+            <form id="absenceForm" class="space-y-6">
+                <div>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Full Name <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        required 
+                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter your full name"
+                    >
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Email Address <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="your.email@school.edu"
+                    >
+                </div>
+
+                <div>
+                    <label for="date" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Date of Absence <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="date" 
+                        id="date" 
+                        name="date" 
+                        required 
+                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                </div>
+
+                <div>
+                    <label for="reason" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Reason for Absence <span class="text-red-500">*</span>
+                    </label>
+                    <textarea 
+                        id="reason" 
+                        name="reason" 
+                        required
+                        rows="4"
+                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Briefly describe the reason for your absence..."
+                    ></textarea>
+                </div>
+
+                <div>
+                    <label for="coverageNeeded" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Coverage Needed?
+                    </label>
+                    <select 
+                        id="coverageNeeded" 
+                        name="coverageNeeded"
+                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="yes">Yes - Substitute Required</option>
+                        <option value="no">No - Coverage Arranged</option>
+                    </select>
+                </div>
+
+                <button 
+                    type="submit" 
+                    id="submitBtn"
+                    class="w-full bg-blue-600 text-white font-semibold p-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+                >
+                    Submit Absence Request
+                </button>
+            </form>
+
+            <!-- Success/Error Messages -->
+            <div id="responseMsg" class="mt-6 p-4 rounded-lg hidden"></div>
+
+            <!-- Demo Info -->
+            <div class="mt-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                <p class="text-sm text-gray-700">
+                    <strong>Demo Mode:</strong> This form is connected to an automated workflow that will:
+                    <ul class="list-disc ml-5 mt-2 space-y-1">
+                        <li>Send notification to principal for approval</li>
+                        <li>Request coverage from front desk</li>
+                        <li>Log the absence in tracking system</li>
+                        <li>Send confirmation email to requester</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-6 text-gray-600 text-sm">
+            <p>Powered by n8n Workflow Automation | Infrastructure as Code with Terraform</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('absenceForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const responseMsg = document.getElementById('responseMsg');
+        
+        // Get ALB URL from window location or use placeholder
+        // In production, this would be dynamically set or environment-specific
+        const N8N_WEBHOOK_URL = 'http://YOUR_ALB_DNS_HERE/webhook/absence-request';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Add timestamp
+            data.timestamp = new Date().toISOString();
+
+            try {
+                // For DEMO: Show success without actual API call
+                // Uncomment below for production with real n8n webhook
+                /*
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                */
+
+                // Demo success message
+                showMessage('✓ Request submitted successfully! Approval workflow initiated.', 'success');
+                form.reset();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('⚠ Error connecting to workflow server. Please try again or contact IT support.', 'error');
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Absence Request';
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
+        function showMessage(message, type) {
+            responseMsg.textContent = message;
+            responseMsg.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            
+            if (type === 'success') {
+                responseMsg.classList.add('bg-green-100', 'text-green-800', 'border-l-4', 'border-green-500');
+            } else {
+                responseMsg.classList.add('bg-red-100', 'text-red-800', 'border-l-4', 'border-red-500');
+            }
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                responseMsg.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Set minimum date to today
+        document.getElementById('date').min = new Date().toISOString().split('T')[0];
+    </script>
+</body>
+</html>
