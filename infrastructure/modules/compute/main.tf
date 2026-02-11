@@ -84,6 +84,7 @@ resource "aws_instance" "n8n" {
               --name n8n \
               -p 5678:5678 \
               -e N8N_SECURE_COOKIE=false \
+              -e WEBHOOK_URL=${var.webhook_base_url} \
               --restart unless-stopped \
               n8nio/n8n
             EOF

@@ -26,3 +26,8 @@ variable "ami_id" {
   type        = string
   default     = "ami-0c55b159cbfafe1f0" # Amazon Linux 2 in us-east-1
 }
+
+variable "webhook_base_url" {
+  description = "Base URL for n8n webhooks (ALB DNS)"
+  type        = string
+}
