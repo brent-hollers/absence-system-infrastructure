@@ -37,9 +37,8 @@ module "compute" {
   project_name      = var.project_name
   subnet_id         = module.networking.private_subnet_id
   security_group_id = module.networking.ec2_security_group_id
-  webhook_base_url  = "http://${module.load_balancer.alb_dns_name}"
-
-   depends_on = [module.load_balancer]
+  n8n_domain        = var.domain_name
+  enable_https      = var.enable_https
 }
 
 # Load Balancer Module
@@ -51,6 +50,8 @@ module "load_balancer" {
   public_subnet_ids      = module.networking.public_subnet_ids
   alb_security_group_id  = module.networking.alb_security_group_id
   instance_id            = module.compute.instance_id
+  enable_https           = var.enable_https
+  certificate_arn        = var.enable_https ? module.dns[0].certificate_arn : ""
 }
 
 # Frontend Module
@@ -59,4 +60,12 @@ module "frontend" {
   
   project_name = var.project_name
   alb_dns_name = module.load_balancer.alb_dns_name
+}
+
+# DNS Module - references existing certificate
+module "dns" {
+  count  = var.enable_https ? 1 : 0
+  source = "./modules/dns"
+  
+  domain_name = var.domain_name
 }

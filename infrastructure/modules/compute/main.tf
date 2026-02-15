@@ -70,21 +70,20 @@ resource "aws_instance" "n8n" {
 
   user_data = <<-EOF
             #!/bin/bash
-            # Update system
             yum update -y
             
-            # Install Docker
             amazon-linux-extras install docker -y
             systemctl start docker
             systemctl enable docker
             usermod -a -G docker ec2-user
             
-            # Run n8n container (without volume, with secure cookie disabled)
+            # Run n8n with proper configuration
             docker run -d \
               --name n8n \
               -p 5678:5678 \
-              -e N8N_SECURE_COOKIE=false \
-              -e WEBHOOK_URL=${var.webhook_base_url} \
+              ${var.enable_https && var.n8n_domain != "" ? "-e N8N_PROTOCOL=https" : ""} \
+              ${var.n8n_domain != "" ? "-e N8N_HOST=${var.n8n_domain}" : ""} \
+              ${var.n8n_domain != "" ? "-e WEBHOOK_URL=https://${var.n8n_domain}" : ""} \
               --restart unless-stopped \
               n8nio/n8n
             EOF

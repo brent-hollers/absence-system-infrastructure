@@ -30,3 +30,15 @@ variable "instance_port" {
   type        = number
   default     = 5678
 }
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS"
+  type        = string
+  default     = ""
+}
+
+variable "enable_https" {
+  description = "Enable HTTPS listener"
+  type        = bool
+  default     = false
+}

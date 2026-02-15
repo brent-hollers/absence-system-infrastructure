@@ -27,7 +27,14 @@ variable "ami_id" {
   default     = "ami-0c55b159cbfafe1f0" # Amazon Linux 2 in us-east-1
 }
 
-variable "webhook_base_url" {
-  description = "Base URL for n8n webhooks (ALB DNS)"
+variable "n8n_domain" {
+  description = "Domain name for n8n webhooks"
   type        = string
+  default     = ""
+}
+
+variable "enable_https" {
+  description = "Enable HTTPS for n8n"
+  type        = bool
+  default     = false
 }

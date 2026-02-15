@@ -47,3 +47,13 @@ output "access_urls" {
     form_cloudfront = module.frontend.cloudfront_url
   }
 }
+
+output "application_url" {
+  description = "URL to access the application"
+  value       = var.enable_https ? "https://${var.domain_name}" : "http://${module.load_balancer.alb_dns_name}"
+}
+
+output "n8n_url" {
+  description = "URL to access n8n"
+  value       = var.enable_https ? "https://${var.domain_name}" : "http://${module.load_balancer.alb_dns_name}"
+}

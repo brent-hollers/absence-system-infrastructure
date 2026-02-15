@@ -17,3 +17,15 @@ variable "environment" {
   type        = string
   default     = "prod"
 }
+
+variable "domain_name" {
+  description = "Domain name for the application"
+  type        = string
+  default     = "absences.smaschool.org"
+}
+
+variable "enable_https" {
+  description = "Enable HTTPS with ACM certificate"
+  type        = bool
+  default     = true
+}
