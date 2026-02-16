@@ -73,3 +73,10 @@ package-lock.json
 tmp/
 temp/
 *.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+diagrams/venv/
+diagrams/.venv/
