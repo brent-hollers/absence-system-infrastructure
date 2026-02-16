@@ -38,6 +38,22 @@
 
 ---
 
+## 🔄 Workflow Automation
+
+The absence request system uses n8n for workflow automation with conditional approval logic.
+
+**Workflow Path:**
+1. **Form Submission** → Webhook trigger
+2. **Date Check** → Past or Future?
+3. **Past Date** → Auto-approve → Log to sheet → Confirm email
+4. **Future Date** → Principal approval → Coverage check → Log to sheet → Confirm email
+
+**See:** [Workflow Documentation](workflows/README.md)
+
+**Workflow JSON:** Available in `workflows/absence-approval-workflow.json` for import into n8n
+
+---
+
 ## 📊 Monitoring & Observability
 
 ![Monitoring Flow](diagrams/output/monitoring_flow.png)
