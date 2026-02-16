@@ -1,291 +1,401 @@
-**Absolutely!** Here's the README.md - copy and paste this into a new file called `README.md` in your project root:
-
-```markdown
 # Staff Absence Request System
 
-Enterprise-grade absence tracking and approval workflow system built with Infrastructure as Code (Terraform), Configuration Management (Ansible), and Cloud Native technologies.
+> Enterprise-grade absence tracking and approval workflow system built with Infrastructure as Code, demonstrating production SRE practices and cloud architecture.
 
-## 🏗️ Architecture
+[![Infrastructure](https://img.shields.io/badge/IaC-Terraform-623CE4?logo=terraform)](https://www.terraform.io/)
+[![Cloud](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws)](https://aws.amazon.com/)
+[![Monitoring](https://img.shields.io/badge/Monitoring-CloudWatch-FF4F8B)](https://aws.amazon.com/cloudwatch/)
+[![Security](https://img.shields.io/badge/Security-HTTPS%20%2B%20ACM-00C853)](https://aws.amazon.com/certificate-manager/)
 
-**Frontend:** Static HTML form hosted on S3, distributed via CloudFront  
-**Backend:** n8n workflow automation server running on EC2  
-**Infrastructure:** AWS (VPC, EC2, ALB, S3, CloudFront, CloudWatch)  
-**IaC:** Terraform with modular design  
-**Configuration:** Ansible for application setup  
-**Monitoring:** CloudWatch dashboards with SLO tracking
+**Live Demo:** https://absences.smaschool.org
+
+---
+
+## 🏗️ Architecture Overview
+
+![System Architecture](diagrams/output/architecture.png)
+
+### Key Components
+
+- **Frontend:** Static HTML form (S3 + CloudFront with HTTPS)
+- **Backend:** n8n workflow automation (EC2 in private subnet)
+- **Load Balancing:** Application Load Balancer with SSL/TLS termination
+- **Networking:** Custom VPC with public/private subnet isolation
+- **Monitoring:** CloudWatch alarms with SLO tracking
+- **Security:** ACM certificate, IAM roles, security groups
+
+---
+
+## 🌐 Network Architecture
+
+![Network Topology](diagrams/output/network_topology.png)
+
+**Design Principles:**
+- Private subnet for compute resources (no public IP)
+- NAT Gateway for secure outbound connectivity
+- Multi-AZ ALB deployment for high availability
+- Security groups enforce least-privilege access
+
+---
+
+## 📊 Monitoring & Observability
+
+![Monitoring Flow](diagrams/output/monitoring_flow.png)
+
+### Service Level Objectives (SLOs)
+
+| Metric | Target | Measurement | Alarm Threshold |
+|--------|--------|-------------|-----------------|
+| **EC2 Health** | 100% uptime | Status checks (60s) | ≥1 failed check |
+| **Target Health** | 100% healthy | ALB health checks (60s) | ≥1 unhealthy target |
+| **Response Time** | 95% < 2s | ALB p95 latency (300s) | p95 > 2 seconds |
+
+**Error Budget:** 99.9% uptime = 43.8 minutes downtime/month allowed
+
+---
 
 ## 📁 Project Structure
-
 ```
-.
+staff-absence-request-system/
 ├── infrastructure/
-│   ├── bootstrap/              # One-time remote state backend setup
-│   ├── modules/                # Reusable Terraform modules
-│   │   ├── networking/         # VPC, subnets, security groups
-│   │   ├── compute/            # EC2 instances, IAM roles
-│   │   ├── load_balancer/      # Application Load Balancer
-│   │   ├── frontend/           # S3 + CloudFront distribution
-│   │   └── monitoring/         # CloudWatch dashboards & alarms
-│   ├── ansible/                # Configuration management
-│   │   ├── playbook.yml
-│   │   └── roles/n8n/          # n8n installation & config
-│   ├── main.tf                 # Root module - orchestrates all modules
-│   ├── backend.tf              # Remote state configuration
-│   ├── variables.tf            # Input variables
-│   └── outputs.tf              # Output values
+│   ├── bootstrap/              # Remote state backend (S3 + DynamoDB)
+│   ├── modules/
+│   │   ├── networking/         # VPC, subnets, NAT, security groups
+│   │   ├── compute/            # EC2, IAM roles, user data
+│   │   ├── load_balancer/      # ALB, target groups, HTTPS listeners
+│   │   ├── frontend/           # S3 bucket, CloudFront distribution
+│   │   ├── dns/                # ACM certificate reference
+│   │   └── monitoring/         # CloudWatch alarms, SNS topics
+│   ├── main.tf                 # Root module orchestration
+│   ├── backend.tf              # S3 remote state configuration
+│   ├── variables.tf            # Input parameters
+│   └── outputs.tf              # Deployment outputs
+├── diagrams/
+│   ├── generate_diagrams.py    # Auto-generate architecture diagrams
+│   └── output/                 # Generated PNG diagrams
 ├── frontend/
-│   └── index.html              # Staff absence request form
+│   └── index.html              # Absence request form
 └── docs/                       # Additional documentation
 ```
 
-## 🚀 Quick Start
+---
+
+## 🚀 Deployment Guide
 
 ### Prerequisites
 
-- AWS CLI configured with appropriate credentials
+- AWS CLI configured (`aws configure`)
 - Terraform >= 1.0
-- Ansible >= 2.9
-- AWS account with necessary permissions
+- Python 3.12+ (for diagrams)
+- Custom domain with DNS access (for HTTPS)
 
-### Phase 1: Bootstrap Remote State Backend (One-time)
-
+### Step 1: Bootstrap Remote State (One-Time)
 ```bash
 cd infrastructure/bootstrap
 terraform init
-terraform plan
 terraform apply
 
-# Save the outputs - you'll need them for backend.tf
+# Note the outputs - you'll need them for backend.tf
 terraform output backend_config
 ```
 
-### Phase 2: Deploy Infrastructure
+**What this creates:**
+- S3 bucket: `hollers-absence-tfstate-<account-id>`
+- DynamoDB table: `absence-system-terraform-locks`
+- Versioning and encryption enabled
 
+### Step 2: Configure Backend
+
+Copy the bootstrap output to `infrastructure/backend.tf`:
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "hollers-absence-tfstate-123456789012"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "absence-system-terraform-locks"
+    encrypt        = true
+  }
+}
+```
+
+### Step 3: Request ACM Certificate
+```bash
+# Request certificate for your domain
+aws acm request-certificate \
+  --domain-name absences.yourdomain.org \
+  --validation-method DNS \
+  --region us-east-1
+
+# Get validation records
+aws acm describe-certificate \
+  --certificate-arn <YOUR_CERT_ARN> \
+  --query "Certificate.DomainValidationOptions[0].ResourceRecord"
+
+# Add CNAME record to your DNS provider
+# Wait for certificate status: ISSUED
+```
+
+### Step 4: Update DNS
+
+Add CNAME record:
+```
+absences.yourdomain.org → absence-system-alb-XXXXX.us-east-1.elb.amazonaws.com
+```
+
+### Step 5: Deploy Infrastructure
 ```bash
 cd infrastructure
+
+# Update variables
+cat > terraform.tfvars <<EOF
+domain_name     = "absences.yourdomain.org"
+enable_https    = true
+alert_email     = "your-email@example.com"
+EOF
 
 # Initialize with remote backend
 terraform init
 
-# Review the plan
+# Review the plan (should show ~28 resources)
 terraform plan
 
-# Deploy all infrastructure
+# Deploy!
 terraform apply
-
-# Ansible will run automatically to configure n8n
 ```
 
-### Phase 3: Verify Deployment
+**Deployment time:** ~10-15 minutes
 
+### Step 6: Verify
 ```bash
-# Get CloudFront URL
-terraform output cloudfront_url
+# Get your endpoints
+terraform output
 
-# Get ALB DNS name
-terraform output alb_dns_name
+# Test HTTPS
+curl https://absences.yourdomain.org
 
-# Check CloudWatch dashboard
-terraform output monitoring_dashboard_url
+# Check n8n is running
+curl https://absences.yourdomain.org
 ```
+
+---
 
 ## 🎯 Key Features
 
 ### Infrastructure as Code
-- **Modular design:** Reusable modules for different components
-- **Remote state:** S3 backend with DynamoDB state locking
-- **Environment consistency:** Same modules across dev/staging/prod
-- **Version controlled:** All infrastructure changes tracked in Git
+✅ **Modular Design** - Reusable components (networking, compute, monitoring)  
+✅ **Remote State** - S3 backend with DynamoDB locking for team collaboration  
+✅ **Immutable Infrastructure** - Declarative configuration, version controlled  
+✅ **Environment Parity** - Same modules work across dev/staging/prod
 
 ### Security
-- **Private subnets:** Compute resources not publicly accessible
-- **Security groups:** Least-privilege network access
-- **IAM roles:** Instance profiles with minimal permissions
-- **Encryption:** S3 encryption at rest, HTTPS in transit
-- **Secrets management:** AWS Secrets Manager integration
-
-### High Availability
-- **Multi-AZ deployment:** Resources across availability zones
-- **Auto-healing:** EC2 instance recovery
-- **Health checks:** ALB monitors backend health
-- **Backup & recovery:** S3 versioning, automated snapshots
+🔒 **Private Subnet Isolation** - EC2 has no public IP, only accessible via ALB  
+🔒 **HTTPS Everywhere** - ACM certificate with automatic HTTP→HTTPS redirect  
+🔒 **Least Privilege IAM** - Instance profile with minimal required permissions  
+🔒 **Security Groups** - Network-level access control (port 5678 from ALB only)  
+🔒 **Secrets Management** - AWS Secrets Manager integration ready
 
 ### Observability
-- **CloudWatch dashboards:** Real-time metrics visualization
-- **SLO tracking:** Availability, latency, error rate monitoring
-- **Alerting:** SNS notifications on threshold breaches
-- **Logging:** Centralized log aggregation
+📈 **CloudWatch Alarms** - EC2 health, ALB targets, response time SLOs  
+📈 **SNS Notifications** - Email alerts on threshold breaches  
+📈 **Distributed Tracing** - Request flow from form → ALB → n8n  
+📈 **SLO Tracking** - Error budgets and availability percentiles
 
-## 📊 Service Level Objectives (SLOs)
+### High Availability
+⚡ **Multi-AZ Load Balancer** - Deployed across 2 availability zones  
+⚡ **Health Checks** - Automatic traffic routing away from unhealthy targets  
+⚡ **Auto-Recovery** - EC2 instance recovery on status check failures  
+⚡ **NAT Gateway** - Managed service with 99.95% SLA
 
-| Metric | SLO | Measurement |
-|--------|-----|-------------|
-| Form Availability | 99% uptime monthly | CloudFront 2xx responses |
-| Submission Success | 99.5% completion rate | ALB success rate |
-| Workflow Execution | 99.9% success rate | n8n workflow completion |
-| Notification Latency | 95% < 2 minutes | Form submit to email delivery |
+---
 
-## 🔧 Development Workflow
+## 🔧 Operations
 
-### Making Infrastructure Changes
-
+### View CloudWatch Alarms
 ```bash
-# Create feature branch
-git checkout -b feature/add-monitoring
+# List all alarms
+aws cloudwatch describe-alarms \
+  --query "MetricAlarms[?AlarmName contains 'absence-system'].AlarmName"
 
+# Check alarm state
+aws cloudwatch describe-alarms \
+  --alarm-names absence-system-ec2-status-check-failed \
+  --query "MetricAlarms[0].StateValue"
+```
+
+### Confirm SNS Subscription
+
+**Check your email for AWS SNS confirmation!** You must click the link to receive alerts.
+
+### Trigger Test Alarm
+```bash
+# Connect to EC2 (no SSH key needed - uses SSM)
+aws ssm start-session --target <instance-id>
+
+# Stop n8n to trigger unhealthy target alarm
+sudo docker stop n8n
+
+# Wait 2-3 minutes - alarm should trigger
+# Restart n8n
+sudo docker start n8n
+```
+
+### Update Infrastructure
+```bash
 # Make changes to Terraform modules
-# ...
+vim infrastructure/modules/compute/main.tf
 
-# Test the plan
-cd infrastructure
+# Preview changes
 terraform plan
 
 # Apply changes
 terraform apply
 
-# Commit and push
+# Commit to Git
 git add .
-git commit -m "feat: add CloudWatch monitoring module"
-git push origin feature/add-monitoring
+git commit -m "feat: update compute instance type"
+git push
 ```
 
-### Updating n8n Configuration
-
-```bash
-# Edit Ansible playbook
-vim infrastructure/ansible/roles/n8n/tasks/main.yml
-
-# Run Ansible separately (if needed)
-cd infrastructure/ansible
-ansible-playbook -i inventory/aws_ec2.yml playbook.yml
-```
+---
 
 ## 🧪 Testing
 
-### Validate Terraform Configuration
-
+### Validate Configuration
 ```bash
 cd infrastructure
-terraform fmt -check
+
+# Format code
+terraform fmt -recursive
+
+# Validate syntax
 terraform validate
+
+# Check for security issues (optional)
+tfsec .
 ```
 
-### Test Individual Modules
-
+### Test Form Submission
 ```bash
-cd infrastructure/modules/networking
-terraform init
-terraform plan
+# Submit test request
+curl -X POST https://absences.smaschool.org/webhook/absence-request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "date": "2026-02-20",
+    "reason": "Medical appointment"
+  }'
 ```
 
-### Verify Deployment
+---
 
-```bash
-# Test form submission
-curl -X POST https://<cloudfront-url>/submit -d "name=Test&date=2024-02-10"
+## 📈 Monitoring Dashboard
 
-# Check n8n health
-curl http://<alb-dns>:5678/healthz
-
-# View CloudWatch metrics
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/ApplicationELB \
-  --metric-name TargetResponseTime \
-  --dimensions Name=LoadBalancer,Value=<alb-name> \
-  --start-time 2024-02-10T00:00:00Z \
-  --end-time 2024-02-10T23:59:59Z \
-  --period 3600 \
-  --statistics Average
+**Access CloudWatch:**
+```
+AWS Console → CloudWatch → Dashboards → absence-system-dashboard
 ```
 
-## 📈 Monitoring & Operations
+**Key Metrics:**
+- EC2 CPU Utilization
+- ALB Request Count
+- ALB Target Response Time (p50, p95, p99)
+- ALB 5xx Error Count
+- CloudFront Cache Hit Rate
 
-### View CloudWatch Dashboard
-
-Navigate to: AWS Console → CloudWatch → Dashboards → absence-system-dashboard
-
-### Respond to Alerts
-
-1. **Alert received via SNS**
-2. **Check CloudWatch metrics** to identify issue
-3. **Review ALB access logs** for patterns
-4. **Check EC2 instance health** and system logs
-5. **Implement fix** (manual or via Terraform)
-6. **Document incident** in post-mortem
-
-### Disaster Recovery
-
-```bash
-# Restore from S3 version
-aws s3api list-object-versions --bucket <state-bucket> --prefix prod/
-
-# Recover EC2 from snapshot
-terraform import aws_instance.n8n_server <instance-id>
-
-# Rollback Terraform changes
-git revert <commit-hash>
-terraform apply
-```
+---
 
 ## 🔒 Security Best Practices
 
-- ✅ Never commit secrets or credentials to Git
-- ✅ Use AWS Secrets Manager for sensitive data
-- ✅ Rotate access keys regularly
-- ✅ Enable MFA on AWS accounts
-- ✅ Review IAM permissions quarterly
-- ✅ Keep Terraform and Ansible versions updated
-- ✅ Scan for security vulnerabilities regularly
-- ✅ Use private subnets for compute resources
+- ✅ All secrets stored in AWS Secrets Manager (never in Git)
+- ✅ IAM roles follow principle of least privilege
+- ✅ EC2 instance in private subnet (no direct internet access)
+- ✅ HTTPS enforced with automatic HTTP redirect
+- ✅ Security groups restrict traffic (port 5678 from ALB only)
+- ✅ S3 bucket encryption at rest
+- ✅ CloudWatch logs retained for audit trail
+- ✅ MFA enabled on AWS root account
+
+---
+
+## 🎓 Learning Outcomes
+
+This project demonstrates:
+
+**Infrastructure as Code:**
+- Terraform module design and composition
+- Remote state management with locking
+- Data sources vs resources
+- Output dependencies between modules
+
+**Cloud Architecture:**
+- VPC design with public/private subnet isolation
+- NAT Gateway for secure outbound connectivity
+- Application Load Balancer with HTTPS termination
+- Multi-AZ high availability patterns
+
+**Site Reliability Engineering:**
+- SLO definition and tracking
+- Error budget calculations
+- Alerting strategy (failure detection vs SLO monitoring)
+- Observability with CloudWatch
+
+**DevOps Practices:**
+- GitOps workflow (infrastructure changes via Git)
+- Modular, reusable components
+- Environment consistency
+- Documentation as code
+
+---
 
 ## 📚 Additional Resources
 
-- [Terraform AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
-- [Ansible Documentation](https://docs.ansible.com/)
-- [n8n Documentation](https://docs.n8n.io/)
+- [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
 - [Google SRE Book - SLOs](https://sre.google/sre-book/service-level-objectives/)
+- [n8n Documentation](https://docs.n8n.io/)
 
-## 🤝 Contributing
+---
 
-This is a demonstration project for interview purposes. For production use, consider:
-- Adding CI/CD pipeline (GitHub Actions, GitLab CI)
-- Implementing blue-green deployments
-- Adding automated testing (Terratest, InSpec)
-- Setting up multiple environments (dev/staging/prod)
-- Implementing cost optimization strategies
-- Adding compliance scanning (tfsec, Checkov)
+## 🤝 Future Enhancements
+
+**For production deployment, consider:**
+
+- [ ] CI/CD pipeline (GitHub Actions) with automated terraform plan on PRs
+- [ ] Blue-green deployment strategy for zero-downtime updates
+- [ ] Auto Scaling Group for EC2 (horizontal scaling)
+- [ ] RDS for persistent workflow data storage
+- [ ] ECS/Fargate instead of EC2 (container orchestration)
+- [ ] CloudFront Lambda@Edge for form validation
+- [ ] AWS WAF for DDoS protection
+- [ ] Cost optimization with Reserved Instances
+- [ ] Automated testing (Terratest, InSpec)
+- [ ] Compliance scanning (tfsec, Checkov)
+
+---
 
 ## 📝 License
 
-MIT License - Educational/Demo Project
+MIT License - See [LICENSE](LICENSE) for details
+
+---
 
 ## 👤 Author
 
-**Dr. Brent Hollers**
-- Email: drhollers@gmail.com
-- LinkedIn: [brent-hollers](https://linkedin.com/in/brent-hollers)
-- GitHub: [@brent-hollers](https://github.com/brent-hollers)
+**Dr. Brent Hollers**  
+Director of IT | Cloud Solutions Architect  
+📧 drhollers@gmail.com  
+🔗 [LinkedIn](https://linkedin.com/in/brent-hollers)  
+💻 [GitHub](https://github.com/brent-hollers)
 
 ---
 
-**Built with:** Terraform • Ansible • AWS • n8n • CloudWatch
+<p align="center">
+  <strong>Built with</strong><br>
+  Terraform • AWS • CloudWatch • Python Diagrams • n8n
+</p>
 
-**Interview Demo:** This project demonstrates enterprise-grade infrastructure automation, SRE practices, and cloud architecture for the Systems Engineer - Automation role at Mag Mutual.
-```
-
----
-
-**Save this as `README.md` in your project root.**
-
-**Ready for the next file? Tell me which one you want next:**
-
-1. `.gitignore` (CRITICAL - do this second!)
-2. `LICENSE`
-3. `INTERVIEW_CHECKLIST.md`
-4. `INTERVIEW_QUICK_REF.md`
-5. `GIT_SETUP.md`
-6. `PROJECT_STRUCTURE.md`
-7. `QUICKSTART.md`
-
-**Which one next?** 📝
+<p align="center">
+  <em>Demonstrating enterprise-grade infrastructure automation and SRE practices</em>
+</p>
