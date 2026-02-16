@@ -19,3 +19,13 @@ output "alb_zone_id" {
   description = "Zone ID of the ALB"
   value       = aws_lb.main.zone_id
 }
+
+output "alb_arn_suffix" {
+  description = "ARN suffix for CloudWatch metrics"
+  value       = aws_lb.main.arn_suffix
+}
+
+output "target_group_arn_suffix" {
+  description = "Target group ARN suffix for CloudWatch metrics"
+  value       = aws_lb_target_group.main.arn_suffix
+}

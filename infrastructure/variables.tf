@@ -29,3 +29,9 @@ variable "enable_https" {
   type        = bool
   default     = true
 }
+
+variable "alert_email" {
+  description = "Email address for CloudWatch alarms"
+  type        = string
+  default     = "bhollers@smaschool.org"
+}

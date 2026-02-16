@@ -69,3 +69,18 @@ module "dns" {
   
   domain_name = var.domain_name
 }
+
+# Monitoring Module
+module "monitoring" {
+  source = "./modules/monitoring"
+  
+  project_name                 = var.project_name
+  aws_region                   = var.aws_region
+  instance_id                  = module.compute.instance_id
+  alb_arn                      = module.load_balancer.alb_arn
+  alb_arn_suffix               = module.load_balancer.alb_arn_suffix
+  target_group_arn             = module.load_balancer.target_group_arn
+  target_group_arn_suffix      = module.load_balancer.target_group_arn_suffix
+  cloudfront_distribution_id   = module.frontend.cloudfront_distribution_id
+  alert_email                  = var.alert_email
+}
