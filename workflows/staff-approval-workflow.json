@@ -1,0 +1,462 @@
+{
+  "name": "staff-approval-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "90316845-c3d1-4c49-8d50-ca9ef7e2b818",
+        "options": {
+          "responseCode": {
+            "values": {}
+          },
+          "responseData": ""
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "c4d1cccd-5350-4821-ab50-5292cac9d2b6",
+      "name": "Webhook",
+      "webhookId": "90316845-c3d1-4c49-8d50-ca9ef7e2b818"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1IvTaKaG_vnWxTtO2151bc4bFxT-XOofrDgHfOwvEweI",
+          "mode": "list",
+          "cachedResultName": "Staff-Absence-Request",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IvTaKaG_vnWxTtO2151bc4bFxT-XOofrDgHfOwvEweI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "2025-2026",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IvTaKaG_vnWxTtO2151bc4bFxT-XOofrDgHfOwvEweI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Webhook').item.json.body.date }}",
+            "Name": "={{ $('Webhook').item.json.body.name }}",
+            "Reason": "={{ $('Webhook').item.json.body.reason }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Duration",
+              "displayName": "Duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Periods Needed",
+              "displayName": "Periods Needed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        -144
+      ],
+      "id": "11bbe4d5-3821-4ac8-9009-699112db1e53",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kqb1OginjqfoDrJF",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ba81b559-fdae-4471-8d49-b2497f99b773",
+              "leftValue": "={{ $json.body.date }}",
+              "rightValue": "2026-02-16T12:33:27",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -96
+      ],
+      "id": "299415b8-309b-4060-8983-ceeeb69dbe84",
+      "name": "Check for future date"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "bhollers@smaschool.org",
+        "subject": "Faculty / Staff Absence Request (Approval Required)",
+        "message": "=Below are the absence request details. Please click approve or decline. \n\nName: {{ $json.body.name }}\nDate: {{ $json.body.date }}\nReason: {{ $json.body.reason }}\nCoverage Required: {{ $json.body.coverageNeeded }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -168
+      ],
+      "id": "e6b7b57e-0ebb-450d-a8c2-19a2d3451881",
+      "name": "Send message for approval by administration",
+      "webhookId": "12726bc2-8270-4a00-9c3f-bbbd10e5f5be",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4hrWqvX7yj1OWtFw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "bhollers@smaschool.org",
+        "subject": "Absence Request",
+        "emailType": "text",
+        "message": "=The following absence request has been made. Please find coverage if necessary:\n\nName: {{ $('Webhook').item.json.body.name }}\nDate(s): {{ $('Webhook').item.json.body.date }}\nCoverage Needed:",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -336
+      ],
+      "id": "d4177865-8a7e-40dc-906e-b2a786cf983a",
+      "name": "Schedule Coverage",
+      "webhookId": "bb6f635e-fdf4-4936-b457-b35821ef6c9c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4hrWqvX7yj1OWtFw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "db1fefbd-e185-43d0-88a2-bbbc25b58245",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -168
+      ],
+      "id": "fa38823c-0ea4-4e4b-a5b7-3343c43e8691",
+      "name": "Absence Approval"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.email }}",
+        "subject": "Faculty / Staff Absence Request",
+        "message": "Your absence request has been declined. If you have any questions, please contact Mrs. Lanauy-Fallasse",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -72
+      ],
+      "id": "25e50609-bec9-4e33-852d-f381131ca85d",
+      "name": "Absence Declined (Requestor)",
+      "webhookId": "b29cd0c4-2c9d-4748-8f74-5ff43185f29c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4hrWqvX7yj1OWtFw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3321034c-99d5-4ed8-9cde-7303ecec3b32",
+              "leftValue": "={{ $('Webhook').item.json.body.coverageNeeded }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -264
+      ],
+      "id": "0553976f-aeee-4c53-8b4c-58dcbc1099ff",
+      "name": "Is Coverage Required"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.email }}",
+        "subject": "Absence Request Approved",
+        "emailType": "text",
+        "message": "Your absence requested has been submitted and approved. If you are a teacher, please ensure a roster and lesson plans are made available to the front office for the day(s) and/or period(s) you will be absent. ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        -144
+      ],
+      "id": "ffec92fe-0c72-4033-b835-8214fc99ef44",
+      "name": "Send a message",
+      "webhookId": "8a18ad9e-d79a-479e-b0ed-96b4f88020fd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4hrWqvX7yj1OWtFw",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "35.129.147.197",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "absences.smaschool.org",
+            "x-amzn-trace-id": "Root=1-69935881-3163fad009c37dfb6e19a5ba",
+            "content-length": "109",
+            "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.7705",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "date": "2026-02-20",
+            "reason": "Vacation",
+            "coverageNeeded": "yes"
+          },
+          "webhookUrl": "https://absences.smaschool.org/webhook-test/90316845-c3d1-4c49-8d50-ca9ef7e2b818",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check for future date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for future date": {
+      "main": [
+        [
+          {
+            "node": "Send message for approval by administration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message for approval by administration": {
+      "main": [
+        [
+          {
+            "node": "Absence Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Coverage": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Absence Approval": {
+      "main": [
+        [
+          {
+            "node": "Is Coverage Required",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Absence Declined (Requestor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Coverage Required": {
+      "main": [
+        [
+          {
+            "node": "Schedule Coverage",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "77b0b62e-9b3e-44bb-af5c-b46a52bb9c21",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d4186df932152ad39ea5105725c58d7f5c9f09284f5e2e462ef4d4fbe9179cc5"
+  },
+  "id": "wEqCtn9g54KeQXwX",
+  "tags": []
+}
