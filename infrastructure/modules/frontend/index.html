@@ -3,195 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Absence Request System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Staff Absence Request | St. Mary's Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a2744;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --cream: #faf8f4;
+            --white: #ffffff;
+            --gray-100: #f4f3f0;
+            --gray-300: #d4d1ca;
+            --gray-500: #8a8680;
+            --gray-700: #4a4845;
+            --success: #2d6a4f;
+            --error: #922b21;
+            --shadow-sm: 0 2px 8px rgba(26,39,68,0.08);
+            --shadow-md: 0 8px 32px rgba(26,39,68,0.12);
+            --shadow-lg: 0 16px 48px rgba(26,39,68,0.16);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(201,168,76,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(26,39,68,0.06) 0%, transparent 50%);
+        }
+        .container { width: 100%; max-width: 620px; animation: fadeUp 0.6s ease both; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .school-crest {
+            width: 56px; height: 56px;
+            background: var(--navy);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: var(--shadow-md);
+        }
+        .school-crest svg { width: 28px; height: 28px; fill: none; stroke: var(--gold); stroke-width: 1.5; stroke-linecap: round; }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem; color: var(--navy);
+            font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
+        }
+        .header p { color: var(--gray-500); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 300; }
+        .card {
+            background: var(--white);
+            border-radius: 20px; padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(201,168,76,0.15);
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        label {
+            display: block; font-size: 0.85rem; font-weight: 600;
+            color: var(--navy); margin-bottom: 0.5rem;
+            letter-spacing: 0.02em; text-transform: uppercase;
+        }
+        label .required { color: var(--gold); margin-left: 2px; }
+        input[type="text"], input[type="email"], input[type="date"], textarea, select {
+            width: 100%; padding: 0.875rem 1rem;
+            border: 1.5px solid var(--gray-300);
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem; color: var(--gray-700);
+            background: var(--white);
+            transition: var(--transition); outline: none; appearance: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(26,39,68,0.08);
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a4845' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem; cursor: pointer;
+        }
+        textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gray-300), transparent);
+            margin: 2rem 0;
+        }
+        .coverage-section {
+            overflow: hidden; max-height: 0; opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+            margin-top: 0;
+        }
+        .coverage-section.visible { max-height: 400px; opacity: 1; margin-top: 1.5rem; }
+        .periods-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem; margin-top: 0.5rem;
+        }
+        .period-checkbox { position: relative; }
+        .period-checkbox input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .period-checkbox label {
+            display: flex; align-items: center; justify-content: center;
+            padding: 0.625rem 0.5rem;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 8px; cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; color: var(--gray-700);
+            text-transform: none; letter-spacing: 0;
+            transition: var(--transition); user-select: none;
+        }
+        .period-checkbox input:checked + label {
+            background: var(--navy); border-color: var(--navy);
+            color: var(--white); box-shadow: var(--shadow-sm);
+        }
+        .period-checkbox label:hover { border-color: var(--navy); background: var(--gray-100); }
+        .period-checkbox input:checked + label:hover { background: var(--navy); }
+        .full-day-btn {
+            grid-column: 1 / -1;
+            display: flex; align-items: center; justify-content: center;
+            gap: 0.5rem; padding: 0.625rem;
+            border: 1.5px dashed var(--gold);
+            border-radius: 8px; cursor: pointer;
+            font-size: 0.85rem; font-weight: 600; color: var(--gold);
+            background: transparent; transition: var(--transition);
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .full-day-btn:hover { background: rgba(201,168,76,0.08); }
+        .full-day-btn.active { background: rgba(201,168,76,0.12); border-style: solid; }
+        .periods-hint {
+            font-size: 0.78rem; color: var(--gray-500);
+            margin-top: 0.5rem; font-weight: 400;
+            text-transform: none; letter-spacing: 0;
+        }
+        .submit-btn {
+            width: 100%; padding: 1rem;
+            background: var(--navy); color: var(--white);
+            border: none; border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: var(--transition);
+            letter-spacing: 0.02em; margin-top: 2rem;
+            position: relative; overflow: hidden;
+        }
+        .submit-btn:hover { background: #243460; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .submit-btn .btn-text { display: inline-block; }
+        .submit-btn .btn-loading { display: none; }
+        .submit-btn.loading .btn-text { display: none; }
+        .submit-btn.loading .btn-loading { display: inline-block; }
+        .message {
+            padding: 1rem 1.25rem; border-radius: var(--radius);
+            margin-top: 1rem; font-size: 0.9rem;
+            display: none; animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.success { background: rgba(45,106,79,0.08); border: 1px solid rgba(45,106,79,0.2); color: var(--success); }
+        .message.error { background: rgba(146,43,33,0.08); border: 1px solid rgba(146,43,33,0.2); color: var(--error); }
+        .message.show { display: block; }
+        .footer { text-align: center; margin-top: 1.5rem; font-size: 0.78rem; color: var(--gray-500); font-weight: 300; }
+        .footer a { color: var(--gray-500); text-decoration: none; border-bottom: 1px solid var(--gray-300); transition: color 0.2s; }
+        .footer a:hover { color: var(--navy); }
+        @media (max-width: 480px) { .card { padding: 1.75rem 1.25rem; } }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-8">
-    <div class="max-w-2xl mx-auto">
-        <!-- Header -->
-        <div class="bg-white p-6 rounded-t-lg shadow-lg">
-            <h1 class="text-3xl font-bold text-gray-800 text-center">Staff Absence Request</h1>
-            <p class="text-gray-600 text-center mt-2">Please complete this form to submit your absence request</p>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="school-crest">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="2 7 12 2 22 7 12 12 2 7"/>
+                <polyline points="2 17 12 22 22 17"/>
+                <polyline points="2 12 12 17 22 12"/>
+            </svg>
         </div>
+        <h1>Absence Request</h1>
+        <p>St. Mary's Academy &nbsp;•&nbsp; Staff Portal</p>
+    </div>
 
-        <!-- Form -->
-        <div class="bg-white p-8 rounded-b-lg shadow-lg">
-            <form id="absenceForm" class="space-y-6">
-                <div>
-                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Full Name <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="name" 
-                        name="name" 
-                        required 
-                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your full name"
-                    >
-                </div>
-
-                <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Email Address <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        required 
-                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="your.email@school.edu"
-                    >
-                </div>
-
-                <div>
-                    <label for="date" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Date of Absence <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="date" 
-                        id="date" 
-                        name="date" 
-                        required 
-                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                </div>
-
-                <div>
-                    <label for="reason" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Reason for Absence <span class="text-red-500">*</span>
-                    </label>
-                    <textarea 
-                        id="reason" 
-                        name="reason" 
-                        required
-                        rows="4"
-                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        placeholder="Briefly describe the reason for your absence..."
-                    ></textarea>
-                </div>
-
-                <div>
-                    <label for="coverageNeeded" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Coverage Needed?
-                    </label>
-                    <select 
-                        id="coverageNeeded" 
-                        name="coverageNeeded"
-                        class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="yes">Yes - Substitute Required</option>
-                        <option value="no">No - Coverage Arranged</option>
-                    </select>
-                </div>
-
-                <button 
-                    type="submit" 
-                    id="submitBtn"
-                    class="w-full bg-blue-600 text-white font-semibold p-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
-                >
-                    Submit Absence Request
-                </button>
-            </form>
-
-            <!-- Success/Error Messages -->
-            <div id="responseMsg" class="mt-6 p-4 rounded-lg hidden"></div>
-
-            <!-- Demo Info -->
-            <div class="mt-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-                <p class="text-sm text-gray-700">
-                    <strong>Demo Mode:</strong> This form is connected to an automated workflow that will:
-                    <ul class="list-disc ml-5 mt-2 space-y-1">
-                        <li>Send notification to principal for approval</li>
-                        <li>Request coverage from front desk</li>
-                        <li>Log the absence in tracking system</li>
-                        <li>Send confirmation email to requester</li>
-                    </ul>
-                </p>
+    <div class="card">
+        <form id="absenceForm">
+            <div class="form-group">
+                <label for="name">Full Name <span class="required">*</span></label>
+                <input type="text" id="name" name="name" required placeholder="Your full name">
             </div>
-        </div>
+            <div class="form-group">
+                <label for="email">Email Address <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required placeholder="your.name@smaschool.org">
+            </div>
+            <div class="form-group">
+                <label for="date">Date of Absence <span class="required">*</span></label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="reason">Reason for Absence <span class="required">*</span></label>
+                <textarea id="reason" name="reason" required placeholder="Briefly describe the reason for your absence..."></textarea>
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+                <label for="coverageNeeded">Coverage Required? <span class="required">*</span></label>
+                <select id="coverageNeeded" name="coverageNeeded" required>
+                    <option value="" disabled selected>Select an option...</option>
+                    <option value="yes">Yes — Substitute Required</option>
+                    <option value="no">No — Coverage Not Needed</option>
+                </select>
+            </div>
 
-        <!-- Footer -->
-        <div class="text-center mt-6 text-gray-600 text-sm">
-            <p>Powered by n8n Workflow Automation | Infrastructure as Code with Terraform</p>
+            <!-- Periods Section (conditionally shown) -->
+            <div class="coverage-section" id="coverageSection">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Periods Requiring Coverage <span class="required">*</span></label>
+                    <div class="periods-grid">
+                        <button type="button" class="full-day-btn" id="fullDayBtn">☀ Full Day (All Periods)</button>
+                        <div class="period-checkbox"><input type="checkbox" id="period1" name="periods" value="1"><label for="period1">Period 1</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period2" name="periods" value="2"><label for="period2">Period 2</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period3" name="periods" value="3"><label for="period3">Period 3</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period4" name="periods" value="4"><label for="period4">Period 4</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period5" name="periods" value="5"><label for="period5">Period 5</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period6" name="periods" value="6"><label for="period6">Period 6</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period7" name="periods" value="7"><label for="period7">Period 7</label></div>
+                        <div class="period-checkbox"><input type="checkbox" id="period8" name="periods" value="8"><label for="period8">Period 8</label></div>
+                    </div>
+                    <p class="periods-hint">Select all periods you will be absent. Front desk will be notified of coverage requirements.</p>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span class="btn-text">Submit Absence Request</span>
+                <span class="btn-loading">Submitting...</span>
+            </button>
+        </form>
+
+        <div class="message success" id="successMsg">
+            ✓ Your absence request has been submitted successfully. You will receive a confirmation email shortly.
+        </div>
+        <div class="message error" id="errorMsg">
+            ✗ There was an error submitting your request. Please try again or contact IT support.
         </div>
     </div>
 
-    <script>
-        const form = document.getElementById('absenceForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const responseMsg = document.getElementById('responseMsg');
-        
-        // Get ALB URL from window location or use placeholder
-        // In production, this would be dynamically set or environment-specific
-        const N8N_WEBHOOK_URL = 'http://YOUR_ALB_DNS_HERE/webhook/absence-request';
+    <div class="footer">
+        <p>St. Mary's Academy Staff Portal &nbsp;•&nbsp; <a href="mailto:it@smaschool.org">IT Support</a></p>
+        <p style="margin-top: 0.35rem;">Powered by n8n Workflow Automation &nbsp;•&nbsp; Infrastructure as Code with Terraform</p>
+    </div>
+</div>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Disable submit button
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+<script>
+    const N8N_WEBHOOK_URL = 'https://absences.smaschool.org/webhook/absence-request';
+    const form            = document.getElementById('absenceForm');
+    const coverageSelect  = document.getElementById('coverageNeeded');
+    const coverageSection = document.getElementById('coverageSection');
+    const fullDayBtn      = document.getElementById('fullDayBtn');
+    const submitBtn       = document.getElementById('submitBtn');
+    const successMsg      = document.getElementById('successMsg');
+    const errorMsg        = document.getElementById('errorMsg');
+    const periodCheckboxes = document.querySelectorAll('input[name="periods"]');
 
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-            
-            // Add timestamp
-            data.timestamp = new Date().toISOString();
+    // Set min date to today
+    document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
-            try {
-                // For DEMO: Show success without actual API call
-                // Uncomment below for production with real n8n webhook
-                /*
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                */
+    // Show/hide coverage section
+    coverageSelect.addEventListener('change', function () {
+        if (this.value === 'yes') {
+            coverageSection.classList.add('visible');
+        } else {
+            coverageSection.classList.remove('visible');
+            periodCheckboxes.forEach(cb => cb.checked = false);
+            fullDayBtn.classList.remove('active');
+        }
+    });
 
-                // Demo success message
-                showMessage('✓ Request submitted successfully! Approval workflow initiated.', 'success');
-                form.reset();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showMessage('⚠ Error connecting to workflow server. Please try again or contact IT support.', 'error');
-            } finally {
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Absence Request';
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
+    // Full Day toggle
+    fullDayBtn.addEventListener('click', function () {
+        const allChecked = [...periodCheckboxes].every(cb => cb.checked);
+        periodCheckboxes.forEach(cb => cb.checked = !allChecked);
+        fullDayBtn.classList.toggle('active', !allChecked);
+    });
+
+    // Sync Full Day button state with individual checkboxes
+    periodCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function () {
+            const allChecked = [...periodCheckboxes].every(cb => cb.checked);
+            fullDayBtn.classList.toggle('active', allChecked);
         });
+    });
 
-        function showMessage(message, type) {
-            responseMsg.textContent = message;
-            responseMsg.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-            
-            if (type === 'success') {
-                responseMsg.classList.add('bg-green-100', 'text-green-800', 'border-l-4', 'border-green-500');
-            } else {
-                responseMsg.classList.add('bg-red-100', 'text-red-800', 'border-l-4', 'border-red-500');
+    // Form submission
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideMessages();
+
+        if (coverageSelect.value === 'yes') {
+            const selectedPeriods = [...periodCheckboxes].filter(cb => cb.checked);
+            if (selectedPeriods.length === 0) {
+                showMessage('error', '✗ Please select at least one period requiring coverage.');
+                return;
             }
-
-            // Hide message after 5 seconds
-            setTimeout(() => {
-                responseMsg.classList.add('hidden');
-            }, 5000);
         }
 
-        // Set minimum date to today
-        document.getElementById('date').min = new Date().toISOString().split('T')[0];
-    </script>
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+
+        const selectedPeriods = [...periodCheckboxes]
+            .filter(cb => cb.checked)
+            .map(cb => `Period ${cb.value}`);
+
+        const payload = {
+            name:           document.getElementById('name').value.trim(),
+            email:          document.getElementById('email').value.trim(),
+            date:           document.getElementById('date').value,
+            reason:         document.getElementById('reason').value.trim(),
+            coverageNeeded: coverageSelect.value,
+            periodsAbsent:  selectedPeriods,
+            isFullDay:      selectedPeriods.length === 8,
+            timestamp:      new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                showMessage('success');
+                form.reset();
+                coverageSection.classList.remove('visible');
+                fullDayBtn.classList.remove('active');
+            } else {
+                throw new Error('Server error: ' + response.status);
+            }
+        } catch (err) {
+            console.error('Submission error:', err);
+            showMessage('error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+        }
+    });
+
+    function showMessage(type, customText) {
+        if (type === 'success') {
+            successMsg.classList.add('show');
+            setTimeout(() => successMsg.classList.remove('show'), 6000);
+        } else {
+            if (customText) errorMsg.textContent = customText;
+            errorMsg.classList.add('show');
+            setTimeout(() => errorMsg.classList.remove('show'), 6000);
+        }
+    }
+
+    function hideMessages() {
+        successMsg.classList.remove('show');
+        errorMsg.classList.remove('show');
+        errorMsg.textContent = '✗ There was an error submitting your request. Please try again or contact IT support.';
+    }
+</script>
 </body>
 </html>
