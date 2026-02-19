@@ -35,3 +35,15 @@ variable "alert_email" {
   type        = string
   default     = "bhollers@smaschool.org"
 }
+
+variable "github_org" {
+  description = "GitHub organization or username"
+  type        = string
+  default     = "brent-hollers"  # Your GitHub username
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+  default     = "staff-absence-request-system"
+}

@@ -57,3 +57,13 @@ output "n8n_url" {
   description = "URL to access n8n"
   value       = var.enable_https ? "https://${var.domain_name}" : "http://${module.load_balancer.alb_dns_name}"
 }
+
+output "github_actions_role_arn" {
+  description = "IAM role ARN for GitHub Actions"
+  value       = module.cicd.github_actions_role_arn
+}
+
+output "cicd_setup_instructions" {
+  description = "Instructions for setting up GitHub Actions"
+  value       = module.cicd.deployment_instructions
+}

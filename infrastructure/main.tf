@@ -84,3 +84,15 @@ module "monitoring" {
   cloudfront_distribution_id   = module.frontend.cloudfront_distribution_id
   alert_email                  = var.alert_email
 }
+
+# CI/CD Module
+module "cicd" {
+  source = "./modules/cicd"
+  
+  project_name               = var.project_name
+  github_org                 = var.github_org
+  github_repo                = var.github_repo
+  s3_bucket_name             = module.frontend.bucket_name
+  cloudfront_distribution_id = module.frontend.cloudfront_distribution_id
+  allowed_branches           = ["main"]
+}
