@@ -45,5 +45,5 @@ variable "github_org" {
 variable "github_repo" {
   description = "GitHub repository name"
   type        = string
-  default     = "staff-absence-request-system"
+  default     = "absence-system-infrastructure"
 }
