@@ -175,6 +175,29 @@
         .footer a { color: var(--gray-500); text-decoration: none; border-bottom: 1px solid var(--gray-300); transition: color 0.2s; }
         .footer a:hover { color: var(--navy); }
         @media (max-width: 480px) { .card { padding: 1.75rem 1.25rem; } }
+        .radio-option {
+            display: flex;
+            align-items: center; /* Aligns dot and text vertically */
+            gap: 10px;            /* Adds a small space between dot and text */
+            margin-bottom: 8px;  /* Spacing between the different options */
+        }
+
+        .radio-option input[type="radio"] {
+            margin: 0;
+            width: 16px;
+            height: 16px;           /* Removes default browser margins that cause misalignment */
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            margin: 0;
+            line-height: 1.2;
+            font-size: 14px;
+            display: inline-block;
+            padding: 0;
+            cursor: pointer;
+            font-weight: normal; /* Optional: makes the choice labels less heavy than the main header */
+        }
     </style>
 </head>
 <body>
@@ -204,6 +227,21 @@
             <div class="form-group">
                 <label for="date">Date of Absence <span class="required">*</span></label>
                 <input type="date" id="date" name="date" required>
+            </div>
+            <div class = "form-group">
+                <label for="absenceType">Absence Type <span class="required">*</span></label>
+                <div class = "radio-option">
+                    <input type="radio" id="Sick" name="absenceType" value="sick" required>
+                    <label for="Sick">Sick</label>
+                </div>
+                <div class = "radio-option">
+                    <input type="radio" id="Personal" name="absenceType" value="personal" required>
+                    <label for="Personal">Personal</label>
+                </div>
+                <div class = "radio-option">
+                    <input type="radio" id="Vacation" name="absenceType" value="vacation" required>
+                    <label for="Vacation">Vacation</label>
+                </div>  
             </div>
             <div class="form-group">
                 <label for="reason">Reason for Absence <span class="required">*</span></label>
@@ -303,6 +341,15 @@
         e.preventDefault();
         hideMessages();
 
+
+        const absenceType = document.querySelector('input[name="absenceType"]:checked');
+        if (!absenceType) {
+            showMessage('error', '✗ Please select an absence type.');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            return;
+        }
+
         if (coverageSelect.value === 'yes') {
             const selectedPeriods = [...periodCheckboxes].filter(cb => cb.checked);
             if (selectedPeriods.length === 0) {
@@ -323,6 +370,7 @@
             email:          document.getElementById('email').value.trim(),
             date:           document.getElementById('date').value,
             reason:         document.getElementById('reason').value.trim(),
+            absenceType:    absenceType.value,
             coverageNeeded: coverageSelect.value,
             periodsAbsent:  selectedPeriods,
             isFullDay:      selectedPeriods.length === 8,
