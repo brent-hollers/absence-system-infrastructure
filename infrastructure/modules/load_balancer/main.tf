@@ -48,7 +48,7 @@ resource "aws_lb_target_group_attachment" "main" {
 # HTTPS Listener (port 443) - only if certificate provided
 resource "aws_lb_listener" "https" {
   count = var.enable_https && var.certificate_arn != "" ? 1 : 0
-  
+
   load_balancer_arn = aws_lb.main.arn
   port              = "443"
   protocol          = "HTTPS"
@@ -73,7 +73,7 @@ resource "aws_lb_listener" "http" {
 
   default_action {
     type = var.enable_https ? "redirect" : "forward"
-    
+
     dynamic "redirect" {
       for_each = var.enable_https ? [1] : []
       content {
@@ -82,7 +82,7 @@ resource "aws_lb_listener" "http" {
         status_code = "HTTP_301"
       }
     }
-    
+
     target_group_arn = var.enable_https ? null : aws_lb_target_group.main.arn
   }
 

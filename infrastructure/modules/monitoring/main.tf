@@ -50,13 +50,13 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
   treat_missing_data  = "breaching"
 
   dimensions = {
-    TargetGroup = var.target_group_arn_suffix
+    TargetGroup  = var.target_group_arn_suffix
     LoadBalancer = var.alb_arn_suffix
   }
 
   tags = {
-  Name = "${var.project_name}-alb-unhealthy-alarm"
-}
+    Name = "${var.project_name}-alb-unhealthy-alarm"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_response_time_slo" {
@@ -67,12 +67,30 @@ resource "aws_cloudwatch_metric_alarm" "alb_response_time_slo" {
   metric_name         = "TargetResponseTime"
   namespace           = "AWS/ApplicationELB"
   period              = 300
-  extended_statistic = "p95" 
-  threshold           = 2  
+  extended_statistic  = "p95"
+  threshold           = 2
   alarm_actions       = [aws_sns_topic.alerts.arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
     LoadBalancer = var.alb_arn_suffix
+  }
+}
+# Workflow failure alarm
+resource "aws_cloudwatch_metric_alarm" "workflow_failures" {
+  alarm_name          = "${var.project_name}-workflow-failures"
+  alarm_description   = "n8n workflow execution failures detected"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "WorkflowFailures"
+  namespace           = "AbsenceSystem/n8n"
+  period              = 300  # 5 minutes
+  statistic           = "Sum"
+  threshold           = 0    # Alert on ANY failure
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  treat_missing_data  = "notBreaching"
+  
+  tags = {
+    Name = "${var.project_name}-workflow-failure-alarm"
   }
 }

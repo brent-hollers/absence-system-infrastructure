@@ -39,11 +39,23 @@ variable "alert_email" {
 variable "github_org" {
   description = "GitHub organization or username"
   type        = string
-  default     = "brent-hollers"  # Your GitHub username
+  default     = "brent-hollers" # Your GitHub username
 }
 
 variable "github_repo" {
   description = "GitHub repository name"
   type        = string
   default     = "absence-system-infrastructure"
+}
+
+variable "frontend_domain" {
+  description = "Custom domain for frontend form"
+  type        = string
+  default     = "form.absences.smaschool.org"
+}
+
+variable "frontend_certificate_arn" {
+  description = "ACM certificate ARN for frontend domain"
+  type        = string
+  default     = "arn:aws:acm:us-east-1:005608856189:certificate/7a2c2b6e-69f8-4d60-b72f-afb462262b2f"
 }

@@ -10,3 +10,15 @@ variable "alb_dns_name" {
   type        = string
   default     = ""
 }
+
+variable "custom_domain" {
+  description = "Custom domain for CloudFront"
+  type        = string
+  default     = ""
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for custom domain"
+  type        = string
+  default     = ""
+}

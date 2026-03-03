@@ -52,6 +52,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
   price_class         = "PriceClass_100" # US, Canada, Europe
+  aliases             = var.custom_domain != "" ? [var.custom_domain] : []
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -84,7 +85,10 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn            = var.certificate_arn != "" ? var.certificate_arn : null
+    ssl_support_method             = var.certificate_arn != "" ? "sni-only" : null
+    minimum_protocol_version       = var.certificate_arn != "" ? "TLSv1.2_2021" : null
+    cloudfront_default_certificate = var.certificate_arn == "" ? true : false
   }
 
   tags = {

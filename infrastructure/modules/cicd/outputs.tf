@@ -10,7 +10,7 @@ output "oidc_provider_arn" {
 
 output "deployment_instructions" {
   description = "Instructions for configuring GitHub Actions"
-  value = <<-EOT
+  value       = <<-EOT
     
     GitHub Actions Configuration:
     ============================

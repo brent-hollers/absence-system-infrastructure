@@ -1,14 +1,14 @@
 provider "aws" {
   region = "us-east-1"
-    
-    default_tags {
-      tags =  {
-        Project = "absence-system"
-        ManagedBy = "terraform-bootstrap"
-        Environment = "shared"
-        Owner = "brent-hollers"
-      }
+
+  default_tags {
+    tags = {
+      Project     = "absence-system"
+      ManagedBy   = "terraform-bootstrap"
+      Environment = "shared"
+      Owner       = "brent-hollers"
     }
+  }
 }
 
 data "aws_caller_identity" "current" {}
@@ -16,20 +16,20 @@ data "aws_caller_identity" "current" {}
 # S3 bucket for state
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "hollers-absence-tfstate-${data.aws_caller_identity.current.account_id}"
-  
+
   lifecycle {
-    prevent_destroy = true 
+    prevent_destroy = true
   }
   tags = {
-    Name = "Terraform State Bucket"
-    Purpose = "Remote state storage for absence system"
+    Name        = "Terraform State Bucket"
+    Purpose     = "Remote state storage for absence system"
     Criticality = "high"
   }
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
-  
+
   versioning_configuration {
     status = "Enabled"
   }
@@ -65,12 +65,12 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 
-    lifecycle {
-    prevent_destroy = true 
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = {
-    Name = "Terraform State Lock Table"
+    Name    = "Terraform State Lock Table"
     Purpose = "State locking for absence system"
   }
 }
