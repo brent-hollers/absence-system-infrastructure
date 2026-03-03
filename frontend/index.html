@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
     <title>Staff Absence Request | St. Mary's Academy</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --navy: #1a2744;
@@ -291,7 +293,7 @@
     
     let currentUser = null;
 
-    // Google Sign-In callback
+    // Google Sign-In callback (keep outside DOMContentLoaded - needs to be global)
     function handleSignIn(response) {
         try {
             // Decode JWT token
@@ -299,9 +301,12 @@
             
             // Validate email domain
             if (!payload.email.endsWith('@' + ALLOWED_DOMAIN)) {
-                document.getElementById('signInError').style.display = 'block';
-                document.getElementById('signInError').textContent = 
-                    `✗ Please sign in with your @${ALLOWED_DOMAIN} email address. You tried: ${payload.email}`;
+                const errorEl = document.getElementById('signInError');
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 
+                        `✗ Please sign in with your @${ALLOWED_DOMAIN} email address. You tried: ${payload.email}`;
+                }
                 return;
             }
             
@@ -310,7 +315,7 @@
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub  // Google user ID
+                sub: payload.sub
             };
             
             // Show form, hide sign-in
@@ -322,16 +327,23 @@
             document.getElementById('userDisplayEmail').textContent = currentUser.email;
             
             // Pre-fill form with authenticated user info
-            document.getElementById('name').value = currentUser.name;
-            document.getElementById('name').readOnly = true;
-            document.getElementById('email').value = currentUser.email;
-            document.getElementById('email').readOnly = true;
+            const nameField = document.getElementById('name');
+            const emailField = document.getElementById('email');
+            
+            if (nameField && emailField) {
+                nameField.value = currentUser.name;
+                nameField.readOnly = true;
+                emailField.value = currentUser.email;
+                emailField.readOnly = true;
+            }
             
         } catch (error) {
             console.error('Sign-in error:', error);
-            document.getElementById('signInError').style.display = 'block';
-            document.getElementById('signInError').textContent = 
-                '✗ Authentication error. Please try again.';
+            const errorEl = document.getElementById('signInError');
+            if (errorEl) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = '✗ Authentication error. Please try again.';
+            }
         }
     }
 
@@ -340,148 +352,176 @@
         currentUser = null;
         document.getElementById('signInSection').style.display = 'block';
         document.getElementById('formSection').style.display = 'none';
-        document.getElementById('absenceForm').reset();
-        document.getElementById('name').readOnly = false;
-        document.getElementById('email').readOnly = false;
+        
+        const form = document.getElementById('absenceForm');
+        if (form) form.reset();
+        
+        const nameField = document.getElementById('name');
+        const emailField = document.getElementById('email');
+        if (nameField) nameField.readOnly = false;
+        if (emailField) emailField.readOnly = false;
+        
         hideMessages();
         
         // Reload page to reset Google Sign-In
         window.location.reload();
     }
 
-    // Rest of your existing JavaScript (form handling)
-    const form            = document.getElementById('absenceForm');
-    const coverageSelect  = document.getElementById('coverageNeeded');
-    const coverageSection = document.getElementById('coverageSection');
-    const fullDayBtn      = document.getElementById('fullDayBtn');
-    const submitBtn       = document.getElementById('submitBtn');
-    const successMsg      = document.getElementById('successMsg');
-    const errorMsg        = document.getElementById('errorMsg');
-    const periodCheckboxes = document.querySelectorAll('input[name="periods"]');
+    // Wait for DOM to be ready before initializing form
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get form elements
+        const form            = document.getElementById('absenceForm');
+        const coverageSelect  = document.getElementById('coverageNeeded');
+        const coverageSection = document.getElementById('coverageSection');
+        const fullDayBtn      = document.getElementById('fullDayBtn');
+        const submitBtn       = document.getElementById('submitBtn');
+        const successMsg      = document.getElementById('successMsg');
+        const errorMsg        = document.getElementById('errorMsg');
+        const periodCheckboxes = document.querySelectorAll('input[name="periods"]');
+        const dateField       = document.getElementById('date');
 
-    // Set min date to today
-    document.getElementById('date').min = new Date().toISOString().split('T')[0];
-
-    // Show/hide coverage section
-    coverageSelect.addEventListener('change', function () {
-        if (this.value === 'yes') {
-            coverageSection.classList.add('visible');
-        } else {
-            coverageSection.classList.remove('visible');
-            periodCheckboxes.forEach(cb => cb.checked = false);
-            fullDayBtn.classList.remove('active');
-        }
-    });
-
-    // Full Day toggle
-    fullDayBtn.addEventListener('click', function () {
-        const allChecked = [...periodCheckboxes].every(cb => cb.checked);
-        periodCheckboxes.forEach(cb => cb.checked = !allChecked);
-        fullDayBtn.classList.toggle('active', !allChecked);
-    });
-
-    // Sync Full Day button state with individual checkboxes
-    periodCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function () {
-            const allChecked = [...periodCheckboxes].every(cb => cb.checked);
-            fullDayBtn.classList.toggle('active', allChecked);
-        });
-    });
-
-    // Form submission
-    form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        hideMessages();
-
-        // Ensure user is authenticated
-        if (!currentUser) {
-            showMessage('error', '✗ You must be signed in to submit a request.');
-            return;
+        // Set min date to today (only if element exists)
+        if (dateField) {
+            dateField.min = new Date().toISOString().split('T')[0];
         }
 
-        // Validate absence type is selected
-        const absenceType = document.querySelector('input[name="absenceType"]:checked');
-        if (!absenceType) {
-            showMessage('error', '✗ Please select an absence type.');
-            return;
-        }
-
-        if (coverageSelect.value === 'yes') {
-            const selectedPeriods = [...periodCheckboxes].filter(cb => cb.checked);
-            if (selectedPeriods.length === 0) {
-                showMessage('error', '✗ Please select at least one period requiring coverage.');
-                return;
-            }
-        }
-
-        submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-
-        const selectedPeriods = [...periodCheckboxes]
-            .filter(cb => cb.checked)
-            .map(cb => `Period ${cb.value}`);
-
-        const payload = {
-            // Authenticated user info (verified by Google)
-            authenticatedUser: currentUser.email,
-            googleUserId: currentUser.sub,
-            name:           currentUser.name,
-            email:          currentUser.email,
-            
-            // Form data
-            date:           document.getElementById('date').value,
-            reason:         document.getElementById('reason').value.trim(),
-            absenceType:    absenceType.value,
-            coverageNeeded: coverageSelect.value,
-            periodsAbsent:  selectedPeriods,
-            isFullDay:      selectedPeriods.length === 8,
-            timestamp:      new Date().toISOString()
-        };
-
-        try {
-            const response = await fetch(N8N_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+        // Show/hide coverage section
+        if (coverageSelect) {
+            coverageSelect.addEventListener('change', function () {
+                if (this.value === 'yes') {
+                    coverageSection.classList.add('visible');
+                } else {
+                    coverageSection.classList.remove('visible');
+                    periodCheckboxes.forEach(cb => cb.checked = false);
+                    fullDayBtn.classList.remove('active');
+                }
             });
-            if (response.ok) {
-                showMessage('success');
-                // Reset form but keep user info
-                document.getElementById('date').value = '';
-                document.getElementById('reason').value = '';
-                document.querySelectorAll('input[name="absenceType"]').forEach(r => r.checked = false);
-                coverageSelect.value = '';
-                coverageSection.classList.remove('visible');
-                periodCheckboxes.forEach(cb => cb.checked = false);
-                fullDayBtn.classList.remove('active');
+        }
+
+        // Full Day toggle
+        if (fullDayBtn) {
+            fullDayBtn.addEventListener('click', function () {
+                const allChecked = [...periodCheckboxes].every(cb => cb.checked);
+                periodCheckboxes.forEach(cb => cb.checked = !allChecked);
+                fullDayBtn.classList.toggle('active', !allChecked);
+            });
+        }
+
+        // Sync Full Day button state with individual checkboxes
+        periodCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                const allChecked = [...periodCheckboxes].every(cb => cb.checked);
+                fullDayBtn.classList.toggle('active', allChecked);
+            });
+        });
+
+        // Form submission
+        if (form) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                hideMessages();
+
+                // Ensure user is authenticated
+                if (!currentUser) {
+                    showMessage('error', '✗ You must be signed in to submit a request.');
+                    return;
+                }
+
+                // Validate absence type is selected
+                const absenceType = document.querySelector('input[name="absenceType"]:checked');
+                if (!absenceType) {
+                    showMessage('error', '✗ Please select an absence type.');
+                    return;
+                }
+
+                if (coverageSelect.value === 'yes') {
+                    const selectedPeriods = [...periodCheckboxes].filter(cb => cb.checked);
+                    if (selectedPeriods.length === 0) {
+                        showMessage('error', '✗ Please select at least one period requiring coverage.');
+                        return;
+                    }
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.classList.add('loading');
+
+                const selectedPeriods = [...periodCheckboxes]
+                    .filter(cb => cb.checked)
+                    .map(cb => `Period ${cb.value}`);
+
+                const payload = {
+                    // Authenticated user info (verified by Google)
+                    authenticatedUser: currentUser.email,
+                    googleUserId: currentUser.sub,
+                    name:           currentUser.name,
+                    email:          currentUser.email,
+                    
+                    // Form data
+                    date:           dateField.value,
+                    reason:         document.getElementById('reason').value.trim(),
+                    absenceType:    absenceType.value,
+                    coverageNeeded: coverageSelect.value,
+                    periodsAbsent:  selectedPeriods,
+                    isFullDay:      selectedPeriods.length === 8,
+                    timestamp:      new Date().toISOString()
+                };
+
+                try {
+                    const response = await fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        showMessage('success');
+                        // Reset form but keep user info
+                        dateField.value = '';
+                        document.getElementById('reason').value = '';
+                        document.querySelectorAll('input[name="absenceType"]').forEach(r => r.checked = false);
+                        coverageSelect.value = '';
+                        coverageSection.classList.remove('visible');
+                        periodCheckboxes.forEach(cb => cb.checked = false);
+                        fullDayBtn.classList.remove('active');
+                    } else {
+                        throw new Error('Server error: ' + response.status);
+                    }
+                } catch (err) {
+                    console.error('Submission error:', err);
+                    showMessage('error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('loading');
+                }
+            });
+        }
+
+        function showMessage(type, customText) {
+            if (type === 'success') {
+                if (successMsg) {
+                    successMsg.classList.add('show');
+                    setTimeout(() => successMsg.classList.remove('show'), 6000);
+                }
             } else {
-                throw new Error('Server error: ' + response.status);
+                if (errorMsg) {
+                    if (customText) errorMsg.textContent = customText;
+                    errorMsg.classList.add('show');
+                    setTimeout(() => errorMsg.classList.remove('show'), 6000);
+                }
             }
-        } catch (err) {
-            console.error('Submission error:', err);
-            showMessage('error');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('loading');
         }
+
+        function hideMessages() {
+            if (successMsg) successMsg.classList.remove('show');
+            if (errorMsg) {
+                errorMsg.classList.remove('show');
+                errorMsg.textContent = '✗ There was an error submitting your request. Please try again or contact IT support.';
+            }
+        }
+
+        // Make these functions available globally for form usage
+        window.showMessage = showMessage;
+        window.hideMessages = hideMessages;
     });
-
-    function showMessage(type, customText) {
-        if (type === 'success') {
-            successMsg.classList.add('show');
-            setTimeout(() => successMsg.classList.remove('show'), 6000);
-        } else {
-            if (customText) errorMsg.textContent = customText;
-            errorMsg.classList.add('show');
-            setTimeout(() => errorMsg.classList.remove('show'), 6000);
-        }
-    }
-
-    function hideMessages() {
-        successMsg.classList.remove('show');
-        errorMsg.classList.remove('show');
-        errorMsg.textContent = '✗ There was an error submitting your request. Please try again or contact IT support.';
-    }
 </script>
 </body>
 </html>
