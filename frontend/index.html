@@ -199,6 +199,7 @@
             font-weight: normal; /* Optional: makes the choice labels less heavy than the main header */
         }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="container">
@@ -214,79 +215,67 @@
         <p>St. Mary's Academy &nbsp;•&nbsp; Staff Portal</p>
     </div>
 
-    <div class="card">
-        <form id="absenceForm">
-            <div class="form-group">
-                <label for="name">Full Name <span class="required">*</span></label>
-                <input type="text" id="name" name="name" required placeholder="Your full name">
+    <!-- Sign-In Section (shown first) -->
+    <div class="card" id="signInSection">
+        <div style="text-align: center; padding: 2rem 0;">
+            <h2 style="font-family: 'Playfair Display', serif; color: var(--navy); margin-bottom: 1rem;">
+                Staff Authentication Required
+            </h2>
+            <p style="color: var(--gray-500); margin-bottom: 2rem;">
+                Please sign in with your St. Mary's Academy Google account to submit an absence request.
+            </p>
+            
+            <!-- Google Sign-In Button -->
+            <div id="g_id_onload"
+                 data-client_id="494380619284-6jbvb39p8uko6kbm4bm5j138ra3fb6g3.apps.googleusercontent.com"
+                 data-callback="handleSignIn"
+                 data-auto_prompt="false">
             </div>
-            <div class="form-group">
-                <label for="email">Email Address <span class="required">*</span></label>
-                <input type="email" id="email" name="email" required placeholder="your.name@smaschool.org">
+            
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
             </div>
-            <div class="form-group">
-                <label for="date">Date of Absence <span class="required">*</span></label>
-                <input type="date" id="date" name="date" required>
+            
+            <div id="signInError" class="message error" style="margin-top: 1rem; display: none;">
+                ✗ Please sign in with your @smaschool.org email address.
             </div>
-            <div class = "form-group">
-                <label for="absenceType">Absence Type <span class="required">*</span></label>
-                <div class = "radio-option">
-                    <input type="radio" id="Sick" name="absenceType" value="sick" required>
-                    <label for="Sick">Sick</label>
-                </div>
-                <div class = "radio-option">
-                    <input type="radio" id="Personal" name="absenceType" value="personal" required>
-                    <label for="Personal">Personal</label>
-                </div>
-                <div class = "radio-option">
-                    <input type="radio" id="Vacation" name="absenceType" value="vacation" required>
-                    <label for="Vacation">Vacation</label>
-                </div>  
-            </div>
-            <div class="form-group">
-                <label for="reason">Reason for Absence <span class="required">*</span></label>
-                <textarea id="reason" name="reason" required placeholder="Briefly describe the reason for your absence..."></textarea>
-            </div>
-            <div class="divider"></div>
-            <div class="form-group">
-                <label for="coverageNeeded">Coverage Required? <span class="required">*</span></label>
-                <select id="coverageNeeded" name="coverageNeeded" required>
-                    <option value="" disabled selected>Select an option...</option>
-                    <option value="yes">Yes — Substitute Required</option>
-                    <option value="no">No — Coverage Not Needed</option>
-                </select>
-            </div>
-
-            <!-- Periods Section (conditionally shown) -->
-            <div class="coverage-section" id="coverageSection">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Periods Requiring Coverage <span class="required">*</span></label>
-                    <div class="periods-grid">
-                        <button type="button" class="full-day-btn" id="fullDayBtn">☀ Full Day (All Periods)</button>
-                        <div class="period-checkbox"><input type="checkbox" id="period1" name="periods" value="1"><label for="period1">Period 1</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period2" name="periods" value="2"><label for="period2">Period 2</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period3" name="periods" value="3"><label for="period3">Period 3</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period4" name="periods" value="4"><label for="period4">Period 4</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period5" name="periods" value="5"><label for="period5">Period 5</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period6" name="periods" value="6"><label for="period6">Period 6</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period7" name="periods" value="7"><label for="period7">Period 7</label></div>
-                        <div class="period-checkbox"><input type="checkbox" id="period8" name="periods" value="8"><label for="period8">Period 8</label></div>
-                    </div>
-                    <p class="periods-hint">Select all periods you will be absent. Front desk will be notified of coverage requirements.</p>
-                </div>
-            </div>
-
-            <button type="submit" class="submit-btn" id="submitBtn">
-                <span class="btn-text">Submit Absence Request</span>
-                <span class="btn-loading">Submitting...</span>
-            </button>
-        </form>
-
-        <div class="message success" id="successMsg">
-            ✓ Your absence request has been submitted successfully. You will receive a confirmation email shortly.
         </div>
-        <div class="message error" id="errorMsg">
-            ✗ There was an error submitting your request. Please try again or contact IT support.
+    </div>
+
+    <!-- Form Section (hidden until signed in) -->
+    <div id="formSection" style="display: none;">
+        <!-- User Info Display -->
+        <div class="card" style="margin-bottom: 1rem; padding: 1rem 1.5rem; background: var(--gray-100);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 0.25rem;">Signed in as:</p>
+                    <p style="font-weight: 600; color: var(--navy);" id="userDisplayName"></p>
+                    <p style="font-size: 0.9rem; color: var(--gray-700);" id="userDisplayEmail"></p>
+                </div>
+                <button onclick="signOut()" style="background: transparent; border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; color: var(--gray-700); font-size: 0.85rem;">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Your existing form card -->
+        <div class="card">
+            <form id="absenceForm">
+                <!-- All your existing form fields -->
+                <!-- ... (keep everything as is) ... -->
+            </form>
+
+            <div class="message success" id="successMsg">
+                ✓ Your absence request has been submitted successfully. You will receive a confirmation email shortly.
+            </div>
+            <div class="message error" id="errorMsg">
+                ✗ There was an error submitting your request. Please try again or contact IT support.
+            </div>
         </div>
     </div>
 
@@ -298,6 +287,69 @@
 
 <script>
     const N8N_WEBHOOK_URL = 'https://absences.smaschool.org/webhook/absence-request';
+    const ALLOWED_DOMAIN = 'smaschool.org';
+    
+    let currentUser = null;
+
+    // Google Sign-In callback
+    function handleSignIn(response) {
+        try {
+            // Decode JWT token
+            const payload = JSON.parse(atob(response.credential.split('.')[1]));
+            
+            // Validate email domain
+            if (!payload.email.endsWith('@' + ALLOWED_DOMAIN)) {
+                document.getElementById('signInError').style.display = 'block';
+                document.getElementById('signInError').textContent = 
+                    `✗ Please sign in with your @${ALLOWED_DOMAIN} email address. You tried: ${payload.email}`;
+                return;
+            }
+            
+            // Store authenticated user info
+            currentUser = {
+                name: payload.name,
+                email: payload.email,
+                picture: payload.picture,
+                sub: payload.sub  // Google user ID
+            };
+            
+            // Show form, hide sign-in
+            document.getElementById('signInSection').style.display = 'none';
+            document.getElementById('formSection').style.display = 'block';
+            
+            // Display user info
+            document.getElementById('userDisplayName').textContent = currentUser.name;
+            document.getElementById('userDisplayEmail').textContent = currentUser.email;
+            
+            // Pre-fill form with authenticated user info
+            document.getElementById('name').value = currentUser.name;
+            document.getElementById('name').readOnly = true;
+            document.getElementById('email').value = currentUser.email;
+            document.getElementById('email').readOnly = true;
+            
+        } catch (error) {
+            console.error('Sign-in error:', error);
+            document.getElementById('signInError').style.display = 'block';
+            document.getElementById('signInError').textContent = 
+                '✗ Authentication error. Please try again.';
+        }
+    }
+
+    // Sign out function
+    function signOut() {
+        currentUser = null;
+        document.getElementById('signInSection').style.display = 'block';
+        document.getElementById('formSection').style.display = 'none';
+        document.getElementById('absenceForm').reset();
+        document.getElementById('name').readOnly = false;
+        document.getElementById('email').readOnly = false;
+        hideMessages();
+        
+        // Reload page to reset Google Sign-In
+        window.location.reload();
+    }
+
+    // Rest of your existing JavaScript (form handling)
     const form            = document.getElementById('absenceForm');
     const coverageSelect  = document.getElementById('coverageNeeded');
     const coverageSection = document.getElementById('coverageSection');
@@ -341,12 +393,16 @@
         e.preventDefault();
         hideMessages();
 
+        // Ensure user is authenticated
+        if (!currentUser) {
+            showMessage('error', '✗ You must be signed in to submit a request.');
+            return;
+        }
 
+        // Validate absence type is selected
         const absenceType = document.querySelector('input[name="absenceType"]:checked');
         if (!absenceType) {
             showMessage('error', '✗ Please select an absence type.');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('loading');
             return;
         }
 
@@ -366,8 +422,13 @@
             .map(cb => `Period ${cb.value}`);
 
         const payload = {
-            name:           document.getElementById('name').value.trim(),
-            email:          document.getElementById('email').value.trim(),
+            // Authenticated user info (verified by Google)
+            authenticatedUser: currentUser.email,
+            googleUserId: currentUser.sub,
+            name:           currentUser.name,
+            email:          currentUser.email,
+            
+            // Form data
             date:           document.getElementById('date').value,
             reason:         document.getElementById('reason').value.trim(),
             absenceType:    absenceType.value,
@@ -385,8 +446,13 @@
             });
             if (response.ok) {
                 showMessage('success');
-                form.reset();
+                // Reset form but keep user info
+                document.getElementById('date').value = '';
+                document.getElementById('reason').value = '';
+                document.querySelectorAll('input[name="absenceType"]').forEach(r => r.checked = false);
+                coverageSelect.value = '';
                 coverageSection.classList.remove('visible');
+                periodCheckboxes.forEach(cb => cb.checked = false);
                 fullDayBtn.classList.remove('active');
             } else {
                 throw new Error('Server error: ' + response.status);

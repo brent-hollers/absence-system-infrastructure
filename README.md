@@ -7,13 +7,19 @@
 [![Monitoring](https://img.shields.io/badge/Monitoring-CloudWatch-FF4F8B)](https://aws.amazon.com/cloudwatch/)
 [![Security](https://img.shields.io/badge/Security-HTTPS%20%2B%20ACM-00C853)](https://aws.amazon.com/certificate-manager/)
 
-**Live Demo:** https://absences.smaschool.org
+**Live Demo:** https://form.absences.smaschool.org
 
 ---
+
+
 
 ## 🏗️ Architecture Overview
 
 ![System Architecture](diagrams/output/architecture.png)
+
+---
+
+![Graphviz Resource Layout in Terraform](graphviz.svg)
 
 ### Key Components
 
