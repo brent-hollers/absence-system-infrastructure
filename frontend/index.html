@@ -267,8 +267,70 @@
         <!-- Your existing form card -->
         <div class="card">
             <form id="absenceForm">
-                <!-- All your existing form fields -->
-                <!-- ... (keep everything as is) ... -->
+                <div class="form-group">
+    <label for="name">Full Name <span class="required">*</span></label>
+    <input type="text" id="name" name="name" required placeholder="Your full name">
+</div>
+<div class="form-group">
+    <label for="email">Email Address <span class="required">*</span></label>
+    <input type="email" id="email" name="email" required placeholder="your.name@smaschool.org">
+</div>
+<div class="form-group">
+    <label for="date">Date of Absence <span class="required">*</span></label>
+    <input type="date" id="date" name="date" required>
+</div>
+<div class="form-group">
+    <label>Absence Type <span class="required">*</span></label>
+    <div class="radio-option">
+        <input type="radio" id="Sick" name="absenceType" value="sick" required>
+        <label for="Sick">Sick</label>
+    </div>
+    <div class="radio-option">
+        <input type="radio" id="Personal" name="absenceType" value="personal" required>
+        <label for="Personal">Personal</label>
+    </div>
+    <div class="radio-option">
+        <input type="radio" id="Vacation" name="absenceType" value="vacation" required>
+        <label for="Vacation">Vacation</label>
+    </div>  
+</div>
+<div class="form-group">
+    <label for="reason">Reason for Absence <span class="required">*</span></label>
+    <textarea id="reason" name="reason" required placeholder="Briefly describe the reason for your absence..."></textarea>
+</div>
+<div class="divider"></div>
+<div class="form-group">
+    <label for="coverageNeeded">Coverage Required? <span class="required">*</span></label>
+    <select id="coverageNeeded" name="coverageNeeded" required>
+        <option value="" disabled selected>Select an option...</option>
+        <option value="yes">Yes — Substitute Required</option>
+        <option value="no">No — Coverage Not Needed</option>
+    </select>
+</div>
+
+<!-- Periods Section (conditionally shown) -->
+<div class="coverage-section" id="coverageSection">
+    <div class="form-group" style="margin-bottom: 0;">
+        <label>Periods Requiring Coverage <span class="required">*</span></label>
+        <div class="periods-grid">
+            <button type="button" class="full-day-btn" id="fullDayBtn">☀ Full Day (All Periods)</button>
+            <div class="period-checkbox"><input type="checkbox" id="period1" name="periods" value="1"><label for="period1">Period 1</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period2" name="periods" value="2"><label for="period2">Period 2</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period3" name="periods" value="3"><label for="period3">Period 3</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period4" name="periods" value="4"><label for="period4">Period 4</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period5" name="periods" value="5"><label for="period5">Period 5</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period6" name="periods" value="6"><label for="period6">Period 6</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period7" name="periods" value="7"><label for="period7">Period 7</label></div>
+            <div class="period-checkbox"><input type="checkbox" id="period8" name="periods" value="8"><label for="period8">Period 8</label></div>
+        </div>
+        <p class="periods-hint">Select all periods you will be absent. Front desk will be notified of coverage requirements.</p>
+    </div>
+</div>
+
+<button type="submit" class="submit-btn" id="submitBtn">
+    <span class="btn-text">Submit Absence Request</span>
+    <span class="btn-loading">Submitting...</span>
+</button>
             </form>
 
             <div class="message success" id="successMsg">
