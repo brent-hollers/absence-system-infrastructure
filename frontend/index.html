@@ -441,11 +441,6 @@
         const periodCheckboxes = document.querySelectorAll('input[name="periods"]');
         const dateField       = document.getElementById('date');
 
-        // Set min date to today (only if element exists)
-        if (dateField) {
-            dateField.min = new Date().toISOString().split('T')[0];
-        }
-
         // Show/hide coverage section
         if (coverageSelect) {
             coverageSelect.addEventListener('change', function () {
