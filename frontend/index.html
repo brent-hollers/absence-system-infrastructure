@@ -276,28 +276,81 @@
     <input type="email" id="email" name="email" required placeholder="your.name@smaschool.org">
 </div>
 <div class="form-group">
-    <label for="date">Date of Absence <span class="required">*</span></label>
-    <input type="date" id="date" name="date" required>
+    <label for="startDate">Start Date <span class="required">*</span></label>
+    <input type="date" id="startDate" name="startDate" required>
 </div>
+
+<div class="form-group">
+    <label for="endDate">End Date <span class="required">*</span></label>
+    <input type="date" id="endDate" name="endDate" required>
+</div>
+
+<p style="font-size: 0.85rem; color: var(--gray-500); margin-top: -0.5rem; margin-bottom: 1.5rem;">
+    For single-day absences, use the same date for both start and end.
+</p>
 <div class="form-group">
     <label>Absence Type <span class="required">*</span></label>
+    
     <div class="radio-option">
-        <input type="radio" id="Sick" name="absenceType" value="sick" required>
-        <label for="Sick">Sick</label>
+        <input type="radio" id="illnessSelf" name="absenceType" value="illness-self" required>
+        <label for="illnessSelf">Illness, yourself</label>
     </div>
+    
     <div class="radio-option">
-        <input type="radio" id="Personal" name="absenceType" value="personal" required>
-        <label for="Personal">Personal</label>
+        <input type="radio" id="illnessSpouse" name="absenceType" value="illness-spouse" required>
+        <label for="illnessSpouse">Illness, spouse</label>
     </div>
+    
     <div class="radio-option">
-        <input type="radio" id="Vacation" name="absenceType" value="vacation" required>
-        <label for="Vacation">Vacation</label>
-    </div>  
+        <input type="radio" id="illnessChild" name="absenceType" value="illness-child" required>
+        <label for="illnessChild">Illness, child</label>
+    </div>
+    
+    <div class="radio-option">
+        <input type="radio" id="illnessOther" name="absenceType" value="illness-other" required>
+        <label for="illnessOther">Illness, other</label>
+    </div>
+    
+    <div class="radio-option">
+        <input type="radio" id="personal" name="absenceType" value="personal" required>
+        <label for="personal">Personal</label>
+    </div>
+    
+    <div class="radio-option">
+        <input type="radio" id="vacation" name="absenceType" value="vacation" required>
+        <label for="vacation">Vacation</label>
+    </div>
+    
+    <div class="radio-option">
+        <input type="radio" id="death" name="absenceType" value="death-family" required>
+        <label for="death">Death in immediate family</label>
+    </div>
+    
+    <div class="radio-option">
+        <input type="radio" id="childRearing" name="absenceType" value="child-rearing" required>
+        <label for="childRearing">Personal Child Rearing</label>
+    </div>
+    
+    <div class="radio-option">
+        <input type="radio" id="other" name="absenceType" value="other" required>
+        <label for="other">Other (Please explain in Reason field)</label>
+    </div>
 </div>
+
+<!-- Conditional field for Death in Family -->
+<div class="form-group" id="deathRelationshipField" style="display: none;">
+    <label for="deathRelationship">Relationship to Deceased <span class="required">*</span></label>
+    <input type="text" id="deathRelationship" name="deathRelationship" placeholder="e.g., Mother, Father, Sibling">
+</div>
+
 <div class="form-group">
-    <label for="reason">Reason for Absence <span class="required">*</span></label>
-    <textarea id="reason" name="reason" required placeholder="Briefly describe the reason for your absence..."></textarea>
+    <label for="reason">Reason for Absence (Optional)</label>
+    <textarea id="reason" name="reason" placeholder="Brief description (DO NOT include medical diagnoses or sensitive health information)"></textarea>
 </div>
+
+<p style="font-size: 0.8rem; color: var(--gray-500); margin-top: -0.5rem; margin-bottom: 1.5rem; padding: 0.75rem; background: var(--gray-100); border-radius: 8px;">
+    <strong>Privacy Notice:</strong> Please do not include specific medical diagnoses, disabilities, or sensitive health information. General descriptions are sufficient for absence tracking purposes.
+</p>
 <div class="divider"></div>
 <div class="form-group">
     <label for="coverageNeeded">Coverage Required? <span class="required">*</span></label>
@@ -439,7 +492,24 @@
         const successMsg      = document.getElementById('successMsg');
         const errorMsg        = document.getElementById('errorMsg');
         const periodCheckboxes = document.querySelectorAll('input[name="periods"]');
-        const dateField       = document.getElementById('date');
+        const startDateField = document.getElementById('startDate');
+        const endDateField = document.getElementById('endDate');
+        const absenceTypeRadios = document.querySelectorAll('input[name="absenceType"]');
+        const deathRelationshipField = document.getElementById('deathRelationshipField');
+        const deathRelationshipInput = document.getElementById('deathRelationship');
+
+        absenceTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'death-family') {
+                    deathRelationshipField.style.display = 'block';
+                    deathRelationshipInput.required = true;
+                } else {
+                    deathRelationshipField.style.display = 'none';
+                    deathRelationshipInput.required = false;
+                    deathRelationshipInput.value = '';
+                }
+            });
+        });
 
         // Show/hide coverage section
         if (coverageSelect) {
@@ -506,16 +576,15 @@
                     .map(cb => `Period ${cb.value}`);
 
                 const payload = {
-                    // Authenticated user info (verified by Google)
                     authenticatedUser: currentUser.email,
                     googleUserId: currentUser.sub,
                     name:           currentUser.name,
                     email:          currentUser.email,
-                    
-                    // Form data
-                    date:           dateField.value,
+                    startDate:      startDateField.value,
+                    endDate:        endDateField.value,
                     reason:         document.getElementById('reason').value.trim(),
                     absenceType:    absenceType.value,
+                    deathRelationship: absenceType.value === 'death-family' ? document.getElementById('deathRelationship').value.trim() : null,
                     coverageNeeded: coverageSelect.value,
                     periodsAbsent:  selectedPeriods,
                     isFullDay:      selectedPeriods.length === 8,
@@ -531,14 +600,18 @@
                     if (response.ok) {
                         showMessage('success');
                         // Reset form but keep user info
-                        dateField.value = '';
+                        startDateField.value = '';
+                        endDateField.value = '';
                         document.getElementById('reason').value = '';
+                        const deathRelInput = document.getElementById('deathRelationship');
+                        if (deathRelInput) deathRelInput.value = '';
                         document.querySelectorAll('input[name="absenceType"]').forEach(r => r.checked = false);
                         coverageSelect.value = '';
                         coverageSection.classList.remove('visible');
                         periodCheckboxes.forEach(cb => cb.checked = false);
                         fullDayBtn.classList.remove('active');
-                    } else {
+                        if (deathRelationshipField) deathRelationshipField.style.display = 'none';
+                    }else {
                         throw new Error('Server error: ' + response.status);
                     }
                 } catch (err) {
